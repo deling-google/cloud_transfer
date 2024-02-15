@@ -136,6 +136,7 @@ import PhotosUI
 
     let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
     UNUserNotificationCenter.current().add(request)
+    Task { await packet.download() }
   }
 
   public func loadAndGenerateQr() async -> Error? {
@@ -161,6 +162,8 @@ import PhotosUI
     showingQrCode = true
     // Add the packet to outbox
     Main.shared.outgoingPackets.append(packet)
+    // Upload the packet
+    Task { await packet.upload() }
     return nil
   }
 

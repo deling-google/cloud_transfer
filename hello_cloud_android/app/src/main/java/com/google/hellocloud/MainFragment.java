@@ -132,7 +132,10 @@ public class MainFragment extends Fragment {
 
     if (endpointForPicker == null) {
       // Media was launched from the main fragment's send_qr button.
-      new SendQrDialogFragment(loadAndGenerateQr(uris)).show(getChildFragmentManager(), TAG);
+      Packet<OutgoingFile> packet = loadAndGeneratePacket(uris);
+      packet.upload();
+      String qrString = DataWrapper.getGson().toJson(packet);
+      new SendQrDialogFragment(qrString).show(getChildFragmentManager(), TAG);
       return;
     }
 
@@ -144,10 +147,10 @@ public class MainFragment extends Fragment {
         .show();
   }
 
-  private String loadAndGenerateQr(List<Uri> uris) {
+  private Packet<OutgoingFile> loadAndGeneratePacket(List<Uri> uris) {
     Packet<OutgoingFile> packet = Utils.loadPhotos(getView().getContext(), uris, null, null);
     Main.shared.addOutgoingPacket(packet);
-    return DataWrapper.getGson().toJson(packet);
+    return packet;
   }
 
   private void scanQrCode() {
@@ -157,9 +160,9 @@ public class MainFragment extends Fragment {
         .initiateScan();
   }
 
-  private void showLocalNotification(Packet packet) {
+  private void showLocalNotificationAndDownload(Packet packet) {
     String title = "You've got files!";
-    String body = "Your files from " + packet.sender + " are ready for downloading";
+    String body = "Your files from " + packet.sender + " will start downloading";
 
     Context context = getContext();
     Intent intent = new Intent(context, MainActivity.class);
@@ -181,6 +184,7 @@ public class MainFragment extends Fragment {
     NotificationManager notificationManager =
         (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
     notificationManager.notify(new Random().nextInt(), builder.build());
+    packet.download(context);
   }
 
   public void onQrCodeReceived(String qrString) {
@@ -202,7 +206,7 @@ public class MainFragment extends Fragment {
         newPacket -> {
           packet.update(newPacket);
           Main.shared.flashPacket(packet);
-          showLocalNotification(packet);
+          showLocalNotificationAndDownload(packet);
           return null;
         });
   }
