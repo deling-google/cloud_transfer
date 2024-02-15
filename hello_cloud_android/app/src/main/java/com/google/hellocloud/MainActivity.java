@@ -193,7 +193,8 @@ public class MainActivity extends AppCompatActivity {
       if (binding != null) {
         Uri imageUri = binding.getModel().getLocalUri();
 
-        new ImageViewDialogFragment(imageUri).show(getSupportFragmentManager(), TAG);
+        new ImageViewDialogFragment(imageUri).show(
+            getSupportFragmentManager(), ImageViewDialogFragment.TAG);
 
         break;
       }

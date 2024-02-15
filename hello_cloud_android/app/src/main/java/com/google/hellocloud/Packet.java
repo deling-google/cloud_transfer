@@ -17,6 +17,7 @@ import com.google.android.gms.tasks.Tasks;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class Packet<T extends File> extends BaseObservable {
@@ -151,14 +152,15 @@ public class Packet<T extends File> extends BaseObservable {
     setState(State.UPLOADED);
   }
 
-  public void download(Context context) {
+  public Task<List<Uri>> download(Context context) {
     if (state != State.UPLOADED) {
-      Log.e(TAG, "Packet is not uploaded before being downloaded.");
-      return;
+      String errorMsg = "Packet is not uploaded before being downloaded.";
+      Log.e(TAG, errorMsg);
+      return Tasks.forException(new IllegalStateException(errorMsg));
     }
     setState(State.DOWNLOADING);
 
-    ArrayList<Task<Long>> tasks = new ArrayList<>();
+    ArrayList<Task<Uri>> tasks = new ArrayList<>();
     Instant beginTime = Instant.now();
     long totalSize = files.stream().map(file -> file.fileSize).reduce(0L, Long::sum);
 
@@ -175,7 +177,7 @@ public class Packet<T extends File> extends BaseObservable {
       Uri uri = resolver.insert(imagesUri, values);
       incomingFile.setLocalUri(uri);
 
-      Task<Long> task =
+      Task<Uri> task =
           incomingFile
               .download()
               .addOnSuccessListener(
@@ -196,11 +198,12 @@ public class Packet<T extends File> extends BaseObservable {
                         Main.shared.context,
                         R.string.error_toast_cannot_download,
                         error.getMessage());
-                  });
+                  })
+              .onSuccessTask(result -> Tasks.forResult(uri));
       tasks.add(task);
     }
 
-    Tasks.whenAllSuccess(tasks)
+    return Tasks.<Uri>whenAllSuccess(tasks)
         .addOnCompleteListener(
             downloadTask -> {
               if (downloadTask.isSuccessful()) {

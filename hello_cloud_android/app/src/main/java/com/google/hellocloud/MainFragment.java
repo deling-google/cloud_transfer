@@ -160,7 +160,7 @@ public class MainFragment extends Fragment {
         .initiateScan();
   }
 
-  private void showLocalNotificationAndDownload(Packet packet) {
+  private void showLocalNotificationAndDownload(Packet<IncomingFile> packet) {
     String title = "You've got files!";
     String body = "Your files from " + packet.sender + " will start downloading";
 
@@ -184,7 +184,12 @@ public class MainFragment extends Fragment {
     NotificationManager notificationManager =
         (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
     notificationManager.notify(new Random().nextInt(), builder.build());
-    packet.download(context);
+    packet.download(context).addOnSuccessListener(downloadedFiles -> {
+      if (!downloadedFiles.isEmpty()) {
+        new ImageViewDialogFragment(downloadedFiles.get(0)).show(
+            getParentFragmentManager(), ImageViewDialogFragment.TAG);
+      }
+    });
   }
 
   public void onQrCodeReceived(String qrString) {

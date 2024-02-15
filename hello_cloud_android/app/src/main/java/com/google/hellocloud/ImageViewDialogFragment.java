@@ -16,6 +16,8 @@ import com.google.hellocloud.databinding.DialogFragmentImageViewBinding;
 
 public class ImageViewDialogFragment extends DialogFragment {
 
+  public static final String TAG = "ImageViewDialogFragment";
+
   private Uri imageUri;
 
   public ImageViewDialogFragment(Uri imageUri) {
