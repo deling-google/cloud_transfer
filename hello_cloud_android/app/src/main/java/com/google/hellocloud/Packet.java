@@ -39,6 +39,8 @@ public class Packet<T extends File> extends BaseObservable {
   private transient State state;
   public transient boolean highlighted = false;
 
+  public boolean seenAfterDownloaded = false;
+
   public Packet() {
     id = UUID.randomUUID();
   }

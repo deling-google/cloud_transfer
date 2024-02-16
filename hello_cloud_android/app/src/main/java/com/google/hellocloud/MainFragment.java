@@ -22,6 +22,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.NotificationCompat;
 import androidx.databinding.BindingAdapter;
 import androidx.databinding.DataBindingUtil;
+import androidx.databinding.Observable;
 import androidx.fragment.app.Fragment;
 import com.google.hellocloud.databinding.FragmentMainBinding;
 import com.google.hellocloud.databinding.ItemEndpointBinding;
@@ -116,6 +117,78 @@ public class MainFragment extends Fragment {
     return binding.getRoot();
   }
 
+  @Override
+  public void onResume() {
+    super.onResume();
+
+    // Open any newly downloaded packets, and listen to new incoming packets to automatically open
+    // them once they are downloaded.
+    Main.shared.addOnPropertyChangedCallback(incomingPacketsObserver);
+    observePendingDownloads();
+  }
+
+  @Override
+  public void onPause() {
+    super.onPause();
+
+    // Removes all observers to prevent them from triggering fragment transactions while the app is
+    // paused, e.g. due to the QR scanner.
+    Main.shared.removeOnPropertyChangedCallback(incomingPacketsObserver);
+    for (Packet<IncomingFile> incomingPacket: Main.shared.getIncomingPackets()) {
+      incomingPacket.removeOnPropertyChangedCallback(incomingPacketStateObserver);
+    }
+  }
+
+  private final Observable.OnPropertyChangedCallback incomingPacketsObserver =
+          new Observable.OnPropertyChangedCallback() {
+            @Override
+            public void onPropertyChanged(Observable sender, int propertyId) {
+              if (propertyId == BR.incomingPackets) {
+                observePendingDownloads();
+              }
+            }
+          };
+
+  private void observePendingDownloads() {
+    Main.shared.getIncomingPackets()
+        .stream()
+        .filter(packet -> !packet.seenAfterDownloaded)
+        .forEach(packet -> {
+          if (packet.getState() == Packet.State.DOWNLOADED) {
+            showDownloadedPacket(packet);
+          } else {
+            packet.addOnPropertyChangedCallback(incomingPacketStateObserver);
+          }
+        });
+  }
+
+  private final Observable.OnPropertyChangedCallback incomingPacketStateObserver =
+      new Observable.OnPropertyChangedCallback() {
+        @Override
+        public void onPropertyChanged(Observable sender, int propertyId) {
+          if (propertyId == BR.state) {
+            Packet<IncomingFile> packet = (Packet<IncomingFile>) sender;
+            if (packet.getState() == Packet.State.DOWNLOADED) {
+              packet.removeOnPropertyChangedCallback(this);
+              showDownloadedPacket(packet);
+            }
+          }
+        }
+      };
+
+  private void showDownloadedPacket(Packet<IncomingFile> incomingPacket) {
+    if (incomingPacket.seenAfterDownloaded) {
+      return;
+    }
+
+    List<IncomingFile> incomingFiles = incomingPacket.files;
+    if (!incomingFiles.isEmpty()) {
+      new ImageViewDialogFragment(incomingFiles.get(0).getLocalUri()).show(
+              getParentFragmentManager(), ImageViewDialogFragment.TAG);
+    }
+    incomingPacket.seenAfterDownloaded = true;
+  }
+
   public void pickMedia(Endpoint endpoint) {
     assert picker != null;
     endpointForPicker = endpoint;
@@ -184,12 +257,7 @@ public class MainFragment extends Fragment {
     NotificationManager notificationManager =
         (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
     notificationManager.notify(new Random().nextInt(), builder.build());
-    packet.download(context).addOnSuccessListener(downloadedFiles -> {
-      if (!downloadedFiles.isEmpty()) {
-        new ImageViewDialogFragment(downloadedFiles.get(0)).show(
-            getParentFragmentManager(), ImageViewDialogFragment.TAG);
-      }
-    });
+    packet.download(context);
   }
 
   public void onQrCodeReceived(String qrString) {
