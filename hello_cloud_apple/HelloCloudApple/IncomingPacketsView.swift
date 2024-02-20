@@ -18,7 +18,7 @@ import SwiftUI
 
 struct IncomingPacketsView: View {
   @EnvironmentObject var model: Main
-  @State var imageUrl: URL? = nil
+  @State var imageIndex: Int = 0
 
   func refresh () async {
     for packet in model.incomingPackets {
@@ -61,7 +61,9 @@ struct IncomingPacketsView: View {
 
                       if file.state == .downloaded {
                         Button(action: {
-                          self.imageUrl = file.localUrl
+                          model.showingPacket = packet.id
+                          let index = packet.files.firstIndex(where: {f in f.localUrl == file.localUrl})
+                          imageIndex = index!
                         }) {
                           Label(String(describing: file.description), systemImage: "photo")
                         }.buttonStyle(.borderless)
@@ -94,7 +96,16 @@ struct IncomingPacketsView: View {
                       .opacity(packet.state == .downloaded ? 1 :0)
                   }.padding(2)
 
-                  Label(String(describing: packet), systemImage: "photo.on.rectangle.angled")
+                  if packet.state == .downloaded {
+                    Button(action: {
+                      imageIndex = 0
+                      model.showingPacket = packet.id
+                    }) {
+                      Label(String(describing: packet), systemImage: "photo.on.rectangle.angled")
+                    }.buttonStyle(.borderless)
+                  } else {
+                    Label(String(describing: packet), systemImage: "photo.on.rectangle.angled")
+                  }
                 }
                 .listRowBackground(
                   (packet.highlighted ? Color.orange.opacity(0.5) : Color.clear)
@@ -103,8 +114,9 @@ struct IncomingPacketsView: View {
             }
           }
         }
-        if imageUrl != nil {
-          ImageView(url: $imageUrl)
+        
+        if model.showingPacket != nil {
+          PacketView(id: $model.showingPacket, index: $imageIndex)
         }
       }
       .refreshable {

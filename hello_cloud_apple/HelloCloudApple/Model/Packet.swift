@@ -134,6 +134,8 @@ extension Packet<IncomingFile> {
         print(String(format: "I: Downloaded packet \(id). Size(b): \(totalSize). Time(s): %.1f. Speed(KB/s): %.1f",
                      duration, (Double(totalSize) as Double) / 1024 / duration))
         state = .downloaded
+
+        Main.shared.showInboxAndPacket(packet: self.id)
       } else {
         print("E: Some files in the packet failed to download.")
         state = .uploaded

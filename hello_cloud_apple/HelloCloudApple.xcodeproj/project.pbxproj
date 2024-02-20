@@ -15,6 +15,7 @@
 		23D1FD2629D8A9FF00620802 /* Endpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23D1FD2529D8A9FF00620802 /* Endpoint.swift */; };
 		23F6A70829D7621F00558F56 /* Main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23F6A70729D7621F00558F56 /* Main.swift */; };
 		23F6A71129D772B800558F56 /* NearbyConnections in Frameworks */ = {isa = PBXBuildFile; productRef = 23F6A71029D772B800558F56 /* NearbyConnections */; };
+		7746BE162B8533BE00BC5696 /* PacketView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7746BE152B8533BE00BC5696 /* PacketView.swift */; };
 		7755C5752B199539003A9E0B /* CloudStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7755C5742B199539003A9E0B /* CloudStorage.swift */; };
 		777392172B2CE0FC002FE3BA /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 777392162B2CE0FC002FE3BA /* GoogleService-Info.plist */; };
 		777392192B2CE8E1002FE3BA /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 777392182B2CE8E1002FE3BA /* FirebaseMessaging */; };
@@ -26,7 +27,6 @@
 		777CC14B2B2E8F9000E2E8FA /* Packet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777CC14A2B2E8F9000E2E8FA /* Packet.swift */; };
 		777FE98C2B301027000DD6D0 /* Debug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777FE98B2B301027000DD6D0 /* Debug.swift */; };
 		777FE9902B301B47000DD6D0 /* DataWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777FE98F2B301B47000DD6D0 /* DataWrapper.swift */; };
-		777FE9922B30CE2E000DD6D0 /* ImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777FE9912B30CE2E000DD6D0 /* ImageView.swift */; };
 		777FE9942B311551000DD6D0 /* CloudDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777FE9932B311551000DD6D0 /* CloudDatabase.swift */; };
 		777FE9962B311622000DD6D0 /* FirebaseDatabaseSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 777FE9952B311622000DD6D0 /* FirebaseDatabaseSwift */; };
 		777FE9982B311622000DD6D0 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 777FE9972B311622000DD6D0 /* FirebaseFunctions */; };
@@ -60,6 +60,7 @@
 		23D1FD2529D8A9FF00620802 /* Endpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Endpoint.swift; sourceTree = "<group>"; };
 		23F6A70729D7621F00558F56 /* Main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Main.swift; sourceTree = "<group>"; };
 		23F6A70E29D76DC400558F56 /* nearby */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = nearby; path = ..; sourceTree = "<group>"; };
+		7746BE152B8533BE00BC5696 /* PacketView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketView.swift; sourceTree = "<group>"; };
 		7755C5742B199539003A9E0B /* CloudStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudStorage.swift; sourceTree = "<group>"; };
 		777392162B2CE0FC002FE3BA /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		7773921E2B2CED78002FE3BA /* HelloCloudApple.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HelloCloudApple.entitlements; sourceTree = "<group>"; };
@@ -69,7 +70,6 @@
 		777CC14A2B2E8F9000E2E8FA /* Packet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Packet.swift; sourceTree = "<group>"; };
 		777FE98B2B301027000DD6D0 /* Debug.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Debug.swift; sourceTree = "<group>"; };
 		777FE98F2B301B47000DD6D0 /* DataWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataWrapper.swift; sourceTree = "<group>"; };
-		777FE9912B30CE2E000DD6D0 /* ImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageView.swift; sourceTree = "<group>"; };
 		777FE9932B311551000DD6D0 /* CloudDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudDatabase.swift; sourceTree = "<group>"; };
 		779087A92B369BC700F60AF1 /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		779087AB2B36A32100F60AF1 /* QrCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QrCodeView.swift; sourceTree = "<group>"; };
@@ -136,7 +136,7 @@
 				23F6A71429D7B0AB00558F56 /* Model */,
 				23252B5529D739E400BB0370 /* HelloCloudApp.swift */,
 				23252B5729D739E400BB0370 /* MainView.swift */,
-				777FE9912B30CE2E000DD6D0 /* ImageView.swift */,
+				7746BE152B8533BE00BC5696 /* PacketView.swift */,
 				779087AB2B36A32100F60AF1 /* QrCodeView.swift */,
 				77F8BA4A2B37E801003A6DC6 /* CodeScanner.swift */,
 				77F8BA4B2B37E802003A6DC6 /* ScannerViewController.swift */,
@@ -284,7 +284,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				777FE9922B30CE2E000DD6D0 /* ImageView.swift in Sources */,
+				7746BE162B8533BE00BC5696 /* PacketView.swift in Sources */,
 				777FE9942B311551000DD6D0 /* CloudDatabase.swift in Sources */,
 				23252B5829D739E400BB0370 /* MainView.swift in Sources */,
 				77F8BA4D2B37E802003A6DC6 /* ScannerViewController.swift in Sources */,

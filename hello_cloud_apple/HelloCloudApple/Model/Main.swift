@@ -29,6 +29,7 @@ import PhotosUI
   var qrCodeData: Data? = nil
 
   var showingInbox = false
+  var showingPacket: UUID? = nil
   var showingOutbox = false
   var loadingPhotos = false
   var showingQrCode = false {
@@ -111,6 +112,13 @@ import PhotosUI
       self.showingInbox = true
     }
     flashPacket(packet: packet, after: 0.5)
+  }
+
+  public func showInboxAndPacket(packet id: UUID) {
+    DispatchQueue.main.async {
+      self.showingInbox = true
+      self.showingPacket = id
+    }
   }
 
   func observePacket(_ packet: Packet<IncomingFile>, fromQr: Bool) {

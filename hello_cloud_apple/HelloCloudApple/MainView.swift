@@ -105,7 +105,7 @@ struct MainView: View {
                 case .success(let result):
                   print("I: QR code scanned: \(result.string)")
                   if let packet = model.onQrCodeReceived(string: result.string) {
-                    showingQrAck = (true, "You have received a packet from \(packet.sender!)")
+                    // showingQrAck = (true, "You have received a packet from \(packet.sender!)")
                   }
                 case .failure(let error):
                   print("E: Failed to scan QR code: \(error.localizedDescription)")
