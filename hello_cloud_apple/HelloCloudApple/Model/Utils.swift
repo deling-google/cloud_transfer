@@ -20,6 +20,41 @@ import PhotosUI
 import UIKit
 
 class Utils {
+  static func loadFiles(
+    files urls: [URL],
+    receiver: String?,
+    notificationToken: String?) async -> Packet<OutgoingFile>? {
+      let packet = Packet<OutgoingFile>(id: UUID())
+      packet.notificationToken = notificationToken
+      packet.state = .loading
+      packet.receiver = receiver
+      packet.sender = Main.shared.localEndpointName
+
+      for url in urls {
+        let gotAccess = url.startAccessingSecurityScopedResource()
+        if !gotAccess {
+          print("Failed to gain access.")
+          return nil
+        }
+        guard let resourceValues = try? url.resourceValues(forKeys: [.contentTypeKey, .fileSizeKey]) else {
+          print("Failed to obtain file type and size")
+          return nil
+        }
+        url.stopAccessingSecurityScopedResource()
+
+        let mimeType = resourceValues.contentType?.preferredMIMEType ?? "application/octet-stream"
+        let file = OutgoingFile(id: UUID(), mimeType: mimeType)
+        file.localUrl = url
+        file.fileSize = (Int64) (resourceValues.fileSize ?? 0)
+        file.state = .loaded
+
+        packet.files.append(file)
+      }
+
+      packet.state = .loaded
+      return packet
+  }
+
   static func loadPhotos(
     photos photosPicked: [PhotosPickerItem],
     receiver: String?,

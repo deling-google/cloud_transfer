@@ -119,7 +119,7 @@ public class Utils {
     return main;
   }
 
-  public static Packet<OutgoingFile> loadPhotos(
+  public static Packet<OutgoingFile> loadFiles(
       Context context, List<Uri> uris, String receiver, String notificationToken) {
     Packet<OutgoingFile> packet = new Packet<>();
     packet.notificationToken = notificationToken;

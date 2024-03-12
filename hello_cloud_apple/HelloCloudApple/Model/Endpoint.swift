@@ -23,32 +23,23 @@ import PhotosUI
   enum State: Int, CustomStringConvertible {
     case discovered, connecting, connected, disconnecting, sending, receiving
 
-      var description: String {
-        return switch self {
-        case .discovered: "Discovered"
-        case .connecting: "Connecting"
-        case .disconnecting: "Disconnecting"
-        case .connected: "Connected"
-        case .sending: "Sending"
-        case .receiving: "Receiving"
-        }
+    var description: String {
+      return switch self {
+      case .discovered: "Discovered"
+      case .connecting: "Connecting"
+      case .disconnecting: "Disconnecting"
+      case .connected: "Connected"
+      case .sending: "Sending"
+      case .receiving: "Receiving"
       }
+    }
   }
 
   let id: String
   let name: String
   @ObservationIgnored var isIncoming: Bool
-  var loadingPhotos: Bool = false
-  var showingConfirmation: Bool = false
-  var photosPicked: [PhotosPickerItem] = [] {
-    didSet {
-      if photosPicked.count > 0 {
-        DispatchQueue.main.async {
-          self.showingConfirmation = true
-        }
-      }
-    }
-  }
+  var loading: Bool = false
+  var showingFileImporter: Bool = false
   var state: State
   @ObservationIgnored var notificationToken: String?
 
@@ -96,13 +87,12 @@ import PhotosUI
   }
 
   /** Load files, create packet in memory, send the packet to the remote endpoint, and upload */
-  func loadSendAndUpload() async -> Error? {
-    // Load photos and save them to local files
-    loadingPhotos = true
-    defer {loadingPhotos = false}
-    
-    guard let packet = await Utils.loadPhotos(
-      photos: photosPicked, receiver: name, notificationToken: notificationToken) else {
+  func loadSendAndUpload(_ urls: [URL]) async -> Error? {
+    loading = true
+    defer {loading = false}
+
+    guard let packet = await Utils.loadFiles(
+      files: urls, receiver: name, notificationToken: notificationToken) else {
       return NSError(domain: "Loading", code: 1)
     }
 
@@ -126,9 +116,6 @@ import PhotosUI
 
     // Add the packet to outbox
     Main.shared.outgoingPackets.append(packet)
-
-    // Clear the photo selection for the next pick
-    photosPicked = []
 
     // Start uploading the packet
     Task { await packet.upload() }

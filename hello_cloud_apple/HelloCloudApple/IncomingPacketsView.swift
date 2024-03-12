@@ -18,7 +18,6 @@ import SwiftUI
 
 struct IncomingPacketsView: View {
   @EnvironmentObject var model: Main
-  @State var imageUrl: URL? = nil
 
   func refresh () async {
     for packet in model.incomingPackets {
@@ -59,15 +58,7 @@ struct IncomingPacketsView: View {
                           .opacity(file.state == .downloading ? 1 :0)
                       }.padding(2)
 
-                      if file.state == .downloaded {
-                        Button(action: {
-                          self.imageUrl = file.localUrl
-                        }) {
-                          Label(String(describing: file.description), systemImage: "photo")
-                        }.buttonStyle(.borderless)
-                      } else {
-                        Label(String(describing: file.description), systemImage: "photo")
-                      }
+                      Label(String(describing: file.description), systemImage: "photo")
                     }
                   }
                 } label: {
@@ -102,9 +93,6 @@ struct IncomingPacketsView: View {
               }
             }
           }
-        }
-        if imageUrl != nil {
-          ImageView(url: $imageUrl)
         }
       }
       .refreshable {

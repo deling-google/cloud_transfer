@@ -39,7 +39,21 @@ class CloudStorage {
   func upload(from localUri: URL, to remotePath: String) async -> Int64? {
     let fileRef = storageRef.child(remotePath)
     return await withCheckedContinuation { continuation in
-      _ = fileRef.putFile(from: localUri) { metadata, error in
+      let gotAccess = localUri.startAccessingSecurityScopedResource()
+      if !gotAccess {
+        print("Failed to gain access.")
+        continuation.resume(returning: nil as Int64?)
+        return
+      }
+
+      defer { localUri.stopAccessingSecurityScopedResource() }
+
+      guard let data = try? Data(contentsOf: localUri) else {
+        continuation.resume(returning: nil as Int64?)
+        return
+      }
+
+      _ = fileRef.putData(data) { metadata, error in
         guard let metadata else {
           print("E: Failed to upload file to \(remotePath). Error: "
                 + (error?.localizedDescription ?? ""))

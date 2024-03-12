@@ -77,21 +77,32 @@ struct MainView: View {
           }
 
           HStack {
-            PhotosPicker(selection: $model.photosPicked, matching: .images) {
-              ZStack{
+            Button (action: { model.showingFileImporter = true }) {
+              ZStack {
                 Label("Send", systemImage: "qrcode")
                   .frame(maxWidth: .infinity, maxHeight: .infinity)
-                  .opacity(model.loadingPhotos ? 0 : 1)
+                  .opacity(model.loading ? 0 : 1)
                 ProgressView()
-                  .opacity(model.loadingPhotos ? 1 :0)
+                  .opacity(model.loading ? 1 :0)
               }
             }
-            .disabled(model.loadingPhotos)
             .buttonStyle(.bordered)
+            .disabled(model.loading)
             .sheet(isPresented: $model.showingQrCode) {
               QrCodeView()
                 .aspectRatio(1.0, contentMode: .fit)
             }
+            .fileImporter(
+              isPresented: $model.showingFileImporter,
+              allowedContentTypes: [.data],
+              allowsMultipleSelection: true) { result in
+                switch result {
+                case .success(let urls):
+                  Task { await model.loadFilesAndGenerateQr(urls) }
+                case .failure(let error):
+                  print("Failure: \(error)")
+                }
+              }
 
             Button(action: {model.showingQrScanner = true}) {
               Label("Receive", systemImage: "qrcode.viewfinder")
@@ -168,26 +179,29 @@ struct MainView: View {
                   .disabled(endpoint.state != .connected)
                   .buttonStyle(.bordered).fixedSize()
                   .frame(maxHeight: .infinity)
-                  PhotosPicker(selection: $endpoint.photosPicked, matching: .images) {
+                  
+                  Button (action: { endpoint.showingFileImporter = true }) {
                     ZStack {
                       Image(systemName: "photo.badge.plus.fill")
-                        .opacity(endpoint.loadingPhotos ? 0 : 1)
+                        .opacity(model.loading ? 0 : 1)
                       ProgressView()
-                        .opacity(endpoint.loadingPhotos ? 1 : 0)
+                        .opacity(model.loading ? 1 :0)
                     }
                   }
-                  .disabled(endpoint.loadingPhotos || endpoint.state != .connected)
+                  .disabled(endpoint.loading || endpoint.state != .connected)
                   .buttonStyle(.bordered).fixedSize()
                   .frame(maxHeight: .infinity)
-                  .alert("Do you want to upload the packet and send the claim token to the remote endpoint?",
-                         isPresented: $endpoint.showingConfirmation) {
-                    Button("Yes") {
-                      Task {
-                        await endpoint.loadSendAndUpload()
+                  .fileImporter(
+                    isPresented: $endpoint.showingFileImporter,
+                    allowedContentTypes: [.data],
+                    allowsMultipleSelection: true) { result in
+                      switch result {
+                      case .success(let urls):
+                        Task { await endpoint.loadSendAndUpload(urls) }
+                      case .failure(let error):
+                        print("Failure: \(error)")
                       }
                     }
-                    Button("No", role: .cancel) { }
-                  }
                 }
               }
             }

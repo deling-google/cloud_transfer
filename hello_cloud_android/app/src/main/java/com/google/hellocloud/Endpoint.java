@@ -105,7 +105,7 @@ public final class Endpoint extends BaseObservable {
     }
     setState(Endpoint.State.SENDING);
 
-    Packet<OutgoingFile> packet = Utils.loadPhotos(context, uris, name, notificationToken);
+    Packet<OutgoingFile> packet = Utils.loadFiles(context, uris, name, notificationToken);
     // Serialize the packet. Note that we want the files to be serialized as a dictionary, with the
     // id being the key, for easy indexing in Firebase database
     DataWrapper<OutgoingFile> wrapper = new DataWrapper<>(packet);

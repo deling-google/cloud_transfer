@@ -43,12 +43,12 @@ import Foundation
   /** Upload to the cloud and returns bytes uploaded if successful or nil otherwise */
   func upload() async -> Int64? {
     guard let localUrl else {
-      print("File not saved. Skipping uploading.")
+      print("Local URL not set. Skipping uploading.")
       return nil;
     }
     
     if state != .loaded {
-      print("File not saved. Skipping uploading.")
+      print("File not loaded. Skipping uploading.")
       return nil
     }
 
@@ -59,9 +59,16 @@ import Foundation
       remotePath! += ".png"
     }
 
+    let gotAccess = localUrl.startAccessingSecurityScopedResource()
+    if !gotAccess {
+      print("Failed to gain access.")
+      return nil
+    }
+
     state = .uploading
     let size = await CloudStorage.shared.upload(from: localUrl, to: remotePath!)
     state = size != nil ? .uploaded : .loaded
+    localUrl.stopAccessingSecurityScopedResource()
     return size
   }
 

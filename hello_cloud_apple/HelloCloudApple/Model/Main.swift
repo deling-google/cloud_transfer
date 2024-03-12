@@ -30,14 +30,10 @@ import PhotosUI
 
   var showingInbox = false
   var showingOutbox = false
-  var loadingPhotos = false
-  var showingQrCode = false {
-    didSet {
-      // Once the QR code page is dismissed, clear the photo selection for the next pick.
-      photosPicked = []
-    }
-  }
+  var loading = false
+  var showingQrCode = false
   var showingQrScanner = false
+  var showingFileImporter = false
 
   var isAdvertising = false {
     didSet {
@@ -72,14 +68,6 @@ import PhotosUI
   var endpoints: [Endpoint] = []
   var outgoingPackets: [Packet<OutgoingFile>] = []
   var incomingPackets: [Packet<IncomingFile>] = []
-
-  var photosPicked: [PhotosPickerItem] = [] {
-    didSet {
-      if photosPicked.count > 0 {
-        Task {await self.loadAndGenerateQr()}
-      }
-    }
-  }
 
   private var connectionManager: ConnectionManager!
   private var advertiser: Advertiser!
@@ -142,13 +130,13 @@ import PhotosUI
     UNUserNotificationCenter.current().add(request)
   }
 
-  public func loadAndGenerateQr() async -> Error? {
-    loadingPhotos = true
-    defer {loadingPhotos = false}
+  public func loadFilesAndGenerateQr(_ urls: [URL]) async -> Error? {
+    loading = true
+    defer {loading = false}
 
-    // We have no way to get the receiver's name and notification token.
-    guard let packet = await Utils.loadPhotos(
-      photos: photosPicked, receiver: nil, notificationToken: nil) else {
+    // We have no way to get the receiver's name and notification token. Use nil values
+    guard let packet = await Utils.loadFiles(
+      files: urls, receiver: nil, notificationToken: nil) else {
       return NSError(domain: "Loading", code: 1)
     }
 

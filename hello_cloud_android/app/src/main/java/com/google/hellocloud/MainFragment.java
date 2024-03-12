@@ -4,18 +4,20 @@ import static com.google.hellocloud.Utils.TAG;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -26,6 +28,7 @@ import androidx.fragment.app.Fragment;
 import com.google.hellocloud.databinding.FragmentMainBinding;
 import com.google.hellocloud.databinding.ItemEndpointBinding;
 import com.google.zxing.integration.android.IntentIntegrator;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -68,7 +71,7 @@ public class MainFragment extends Fragment {
       binding.pick.setOnClickListener(
           v -> {
             MainFragment mainFragment = getMainFragment();
-            mainFragment.pickMedia(endpoint);
+            mainFragment.pickFiles(endpoint);
           });
 
       return view;
@@ -96,14 +99,17 @@ public class MainFragment extends Fragment {
   private final Main model = Main.shared;
   private Endpoint endpointForPicker = null;
 
-  ActivityResultLauncher<PickVisualMediaRequest> picker;
+  ActivityResultLauncher<Intent> picker;
 
   @Override
   public View onCreateView(
       @NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     picker =
         registerForActivityResult(
-            new ActivityResultContracts.PickMultipleVisualMedia(), this::onMediaPicked);
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+              onFilesPicked(result);
+            });
 
     FragmentMainBinding binding =
         DataBindingUtil.inflate(inflater, R.layout.fragment_main, container, false);
@@ -111,46 +117,66 @@ public class MainFragment extends Fragment {
     binding.setModel(model);
     getActivity().setTitle(R.string.app_name);
 
-    binding.sendQr.setOnClickListener(v -> pickMedia(null));
+    binding.sendQr.setOnClickListener(v -> pickFiles(null));
     binding.receiveQr.setOnClickListener(v -> scanQrCode());
     return binding.getRoot();
   }
 
-  public void pickMedia(Endpoint endpoint) {
+  public void pickFiles(Endpoint endpoint) {
     assert picker != null;
     endpointForPicker = endpoint;
-    picker.launch(
-        new PickVisualMediaRequest.Builder()
-            .setMediaType(ActivityResultContracts.PickVisualMedia.ImageAndVideo.INSTANCE)
-            .build());
+    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+    intent.setType("*/*");
+    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+    picker.launch(intent);
   }
 
-  private void onMediaPicked(List<Uri> uris) {
-    if (uris.size() == 0) {
+  private void onFilesPicked(ActivityResult result) {
+    Intent data = result.getData();
+    if (data == null) {
+      Log.e(TAG, "File chooser error.");
       return;
     }
 
+    List<Uri> uris = new ArrayList<>();
+
+    ClipData clipData = data.getClipData();
+    if(clipData != null) {
+      for (int i = 0; i < clipData.getItemCount(); i ++ ) {
+        uris.add(clipData.getItemAt(i).getUri());
+      }
+    } else {
+      Uri uri = data.getData();
+      if (uri != null) {
+        uris.add(uri);
+      } else {
+        Log.e(TAG, "File chooser error.");
+      }
+    }
+
     if (endpointForPicker == null) {
-      // Media was launched from the main fragment's send_qr button.
-      Packet<OutgoingFile> packet = loadAndGeneratePacket(uris);
-      packet.upload();
-      String qrString = DataWrapper.getGson().toJson(packet);
-      new SendQrDialogFragment(qrString).show(getChildFragmentManager(), TAG);
+      // File picker was launched from the main fragment's send_qr button.
+      loadAndGeneratePacket(uris);
       return;
     }
 
     Context context = getView().getContext();
     new AlertDialog.Builder(context)
-        .setMessage("Do you want to upload the packet and send the claim token to the remote endpoint?")
-        .setPositiveButton("Yes", (dialog, button) -> endpointForPicker.loadSendAndUpload(context, uris))
-        .setNegativeButton("No", null)
-        .show();
+            .setMessage(
+                    "Do you want to upload the packet and send the claim token to the remote endpoint?")
+            .setPositiveButton(
+                    "Yes", (dialog, button) -> endpointForPicker.loadSendAndUpload(context, uris))
+            .setNegativeButton("No", null)
+            .show();
   }
 
-  private Packet<OutgoingFile> loadAndGeneratePacket(List<Uri> uris) {
-    Packet<OutgoingFile> packet = Utils.loadPhotos(getView().getContext(), uris, null, null);
+  private void loadAndGeneratePacket(List<Uri> uris) {
+    // We have no way to get the receiver's name and notification token, use null values
+    Packet<OutgoingFile> packet = Utils.loadFiles(getView().getContext(), uris, null, null);
     Main.shared.addOutgoingPacket(packet);
-    return packet;
+    packet.upload();
+    String qrString = DataWrapper.getGson().toJson(packet);
+    new SendQrDialogFragment(qrString).show(getChildFragmentManager(), TAG);
   }
 
   private void scanQrCode() {
