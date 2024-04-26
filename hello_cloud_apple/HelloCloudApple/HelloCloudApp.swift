@@ -15,6 +15,7 @@
 //
 
 import SwiftUI
+import NetworkExtension
 import FirebaseCore
 import FirebaseMessaging
 
@@ -115,6 +116,16 @@ struct HelloCloudApp: App {
           }
           print(host)  // pixel6
           print(params)  // file=1.jpeg
+
+          let hotspotConfig = NEHotspotConfiguration(ssid: "Pixel_6431", passphrase: "quickshare", isWEP: false)
+          NEHotspotConfigurationManager.shared.apply(hotspotConfig) {(error) in
+            if let error = error {
+              print("Failed to join the hotspot. Error = ",error)
+            }
+            else {
+              print("Joined the hotspot!")
+            }
+          }
         })
     }
   }
