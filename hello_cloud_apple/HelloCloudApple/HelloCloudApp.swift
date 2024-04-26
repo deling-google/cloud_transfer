@@ -102,7 +102,20 @@ struct HelloCloudApp: App {
 
   var body: some Scene {
     WindowGroup {
-      mainView.environment(mainModel)
+      mainView
+        .environment(mainModel)
+        .onOpenURL(perform: { url in
+          print(url)
+          // qs://pixel6?file=1.jpeg
+          guard let components = NSURLComponents(url: url, resolvingAgainstBaseURL: true),
+                let host = components.host,
+                let params = components.queryItems else {
+            print("Invalid URL or album path missing")
+            return
+          }
+          print(host)  // pixel6
+          print(params)  // file=1.jpeg
+        })
     }
   }
 }
