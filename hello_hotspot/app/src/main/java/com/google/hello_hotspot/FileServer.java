@@ -1,12 +1,15 @@
 package com.google.hello_hotspot;
 
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.net.Uri;
+import android.provider.MediaStore;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -14,6 +17,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
+
+// For debugging upload, connect to the hotspot from a PC/Mac and use cURL. E.g.
+// curl -v --data-binary "@puppy.jpeg" 192.168.18.23:50000/0 -H "Content-Type: image/jpeg"
 
 public class FileServer extends Thread {
   static class Pair<T1, T2> {
@@ -82,8 +89,6 @@ public class FileServer extends Thread {
   }
 
   private byte[] getFileContent(Uri uri) {
-    System.out.println(uri);
-
     if (uri == null) {
       return null;
     }
@@ -96,13 +101,18 @@ public class FileServer extends Thread {
     } catch (IOException e) {
       System.out.println(Arrays.toString(e.getStackTrace()));
     }
-    System.out.println(bytes.length);
     return bytes;
   }
 
   private String getFileType(Uri uri) {
     return uri == null ? null : contentResolver.getType(uri);
   }
+
+  enum Method {
+    Unknown,
+    Get,
+    Post
+  };
 
   @Override
   public void run() {
@@ -115,36 +125,55 @@ public class FileServer extends Thread {
 
         String path = null;
         String request;
+        Method method = Method.Unknown;
+        String postType = null;
+        int postLength = -1;
+
         do {
+          final String prefixGet = "GET /";
+          final String prefixPost = "POST /";
+          final String prefixContentLength = "Content-Length:";
+          final String prefixContentType = "Content-Type:";
+
           request = inputStream.readLine();
-          String prefix = "GET /";
-          if (request.startsWith(prefix)) {
-            path = request.substring(prefix.length());
+
+          if (request.startsWith(prefixGet) || request.startsWith(prefixPost)) {
+            if (request.startsWith(prefixGet)) {
+              method = Method.Get;
+              path = request.substring(prefixGet.length());
+            } else {
+              method = Method.Post;
+              path = request.substring(prefixPost.length());
+            }
+
             int space = path.indexOf(' ');
             if (space != -1) {
-              // "GET /path HTTP/1.1"
+              // "GET|POST /path HTTP/1.1"
               path = path.substring(0, space);
+            }
+          } else if (request.startsWith(prefixContentType)) {
+            postType = request.substring(prefixContentType.length()).trim();
+          } else if (request.startsWith(prefixContentLength)) {
+            try {
+              postLength = Integer.parseInt(request.substring(prefixContentLength.length()).trim());
+            } catch (NumberFormatException e) {
+              postLength = -1;
             }
           }
         } while (request.length() != 0);
 
-        if (path != null) {
-          // GET method
+        if (method == Method.Get) {
           int index;
           try {
-            index=Integer.parseInt(path);
+            index = Integer.parseInt(path);
           } catch (NumberFormatException e) {
             index = -1;
           }
-
-          System.out.println(path);
-          System.out.println(index);
 
           Uri uri = (index >= 0 && index < filesServed.size()) ? filesServed.get(index) : null;
           byte[] body = getFileContent(uri);
           String type = getFileType(uri);
 
-          System.out.println(type);
           Response response = new Response();
 
           if (body != null && type != null) {
@@ -162,13 +191,40 @@ public class FileServer extends Thread {
             if (body != null) {
               outputStream.write(body);
             }
-
             outputStream.flush();
             outputStream.close();
             socket.close();
           } catch (Exception e) {
             System.out.println(Arrays.toString(e.getStackTrace()));
           }
+        } else if (method == Method.Post) {
+          Response response = new Response();
+
+          try {
+            byte[] content = new byte[postLength];
+            inputStream.readFully(content);
+
+            // Write the POST content to a file
+            String fileName = UUID.randomUUID().toString().toUpperCase();
+            Uri imagesUri =
+                MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+            values.put(MediaStore.MediaColumns.MIME_TYPE, postType);
+            Uri uri = contentResolver.insert(imagesUri, values);
+            OutputStream stream = contentResolver.openOutputStream(uri);
+            stream.write(content);
+            response.setStatusCode(200);
+            stream.close();
+          } catch (NullPointerException|IOException e) {
+            response.setStatusCode(500);
+          }
+
+          outputStream.write(response.getBytes());
+          outputStream.close();
+          socket.close();
+
+          // TODO: add an event to notify the main activity that a file has been uploaded
         } else {
           outputStream.close();
           socket.close();
