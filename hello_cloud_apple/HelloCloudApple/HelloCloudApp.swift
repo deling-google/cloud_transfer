@@ -16,6 +16,8 @@
 
 import SwiftUI
 import NetworkExtension
+import CoreLocation
+import SystemConfiguration.CaptiveNetwork
 import FirebaseCore
 import FirebaseMessaging
 
@@ -101,29 +103,43 @@ struct HelloCloudApp: App {
     mainView = MainView(model: mainModel)
   }
 
+  func waitForSsid(_ ssid: String) -> Void {
+    NEHotspotNetwork.fetchCurrent { network in
+      if network == nil {
+        print("Waiting...")
+        waitForSsid(ssid)
+      } else {
+        print("Joined hotspot")
+      }
+    }
+  }
+
   var body: some Scene {
     WindowGroup {
       mainView
         .environment(mainModel)
         .onOpenURL(perform: { url in
           print(url)
-          // qs://pixel6?file=1.jpeg
+          // qs://[h|c]?ssid=qstest
           guard let components = NSURLComponents(url: url, resolvingAgainstBaseURL: true),
-                let host = components.host,
+                let command = components.host,
                 let params = components.queryItems else {
-            print("Invalid URL or album path missing")
+            print("Invalid URL")
             return
           }
-          print(host)  // pixel6
+          print(command)  // pixel6
           print(params)  // file=1.jpeg
 
-          let hotspotConfig = NEHotspotConfiguration(ssid: "Pixel_6431", passphrase: "quickshare", isWEP: false)
+          let ssid: String = "qstest"
+          let passphrase: String = "passphrase"
+          let hotspotConfig = NEHotspotConfiguration(ssid: ssid, passphrase: passphrase, isWEP: false)
           NEHotspotConfigurationManager.shared.apply(hotspotConfig) {(error) in
             if let error = error {
               print("Failed to join the hotspot. Error = ",error)
             }
             else {
-              print("Joined the hotspot!")
+              print("Joining the hotspot...")
+              waitForSsid(ssid);
             }
           }
         })
