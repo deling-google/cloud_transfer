@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "23252B5129D739E400BB0370"
-               BuildableName = "HelloCloudApple.app"
-               BlueprintName = "HelloCloudApple"
-               ReferencedContainer = "container:HelloCloudApple.xcodeproj">
+               BuildableName = "HotspotApple.app"
+               BlueprintName = "HotspotApple"
+               ReferencedContainer = "container:HotspotApple.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -44,9 +44,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "23252B5129D739E400BB0370"
-            BuildableName = "HelloCloudApple.app"
-            BlueprintName = "HelloCloudApple"
-            ReferencedContainer = "container:HelloCloudApple.xcodeproj">
+            BuildableName = "HotspotApple.app"
+            BlueprintName = "HotspotApple"
+            ReferencedContainer = "container:HotspotApple.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -61,9 +61,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "23252B5129D739E400BB0370"
-            BuildableName = "HelloCloudApple.app"
-            BlueprintName = "HelloCloudApple"
-            ReferencedContainer = "container:HelloCloudApple.xcodeproj">
+            BuildableName = "HotspotApple.app"
+            BlueprintName = "HotspotApple"
+            ReferencedContainer = "container:HotspotApple.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
