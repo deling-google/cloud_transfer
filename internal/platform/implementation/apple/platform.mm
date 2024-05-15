@@ -34,6 +34,7 @@
 #import "internal/platform/implementation/apple/single_thread_executor.h"
 #include "internal/platform/implementation/apple/timer.h"
 #import "internal/platform/implementation/apple/utils.h"
+#include "internal/platform/implementation/apple/wifi_hotspot.h"
 #include "internal/platform/implementation/apple/wifi_lan.h"
 #include "internal/platform/implementation/mutex.h"
 #include "internal/platform/implementation/shared/file.h"
@@ -184,7 +185,7 @@ std::unique_ptr<WifiLanMedium> ImplementationPlatform::CreateWifiLanMedium() {
 }
 
 std::unique_ptr<WifiHotspotMedium> ImplementationPlatform::CreateWifiHotspotMedium() {
-  return nullptr;
+  return std::make_unique<apple::WifiHotspotMedium>();
 }
 
 std::unique_ptr<WifiDirectMedium> ImplementationPlatform::CreateWifiDirectMedium() {
