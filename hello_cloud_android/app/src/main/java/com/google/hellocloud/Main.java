@@ -386,6 +386,7 @@ public final class Main extends BaseObservable {
 
           Optional<Endpoint> endpoint = getEndpoint(endpointId);
           endpoint.ifPresent(endpoints::remove);
+          notifyPropertyChanged(BR.endpoints);
         }
       };
 
